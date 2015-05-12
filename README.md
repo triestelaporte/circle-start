@@ -9,4 +9,4 @@ $ git remote add circle https://github.com/CodeScience/circle-start.git
 $ git fetch 
 
 # pull from c
-$ git pull circle/master
+$ git pull circle/deploy
