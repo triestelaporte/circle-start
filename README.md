@@ -1,5 +1,3 @@
-# circle-start
-
 # Quick Start
 Get started with continuous integration on the Salesforce.com platform
 
