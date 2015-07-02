@@ -9,6 +9,8 @@ Get started with continuous integration on the Salesforce.com platform
 
 #### pull from the deply branch of the circle remote
 ```$ git pull circle deploy```
+or
+```$ git pull circle deploy-with-CumulusCI```
 
 # Full Circle CI/Salesforce Setup
 ## Overview
