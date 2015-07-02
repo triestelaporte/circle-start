@@ -143,15 +143,11 @@ So… close… Now we need to create our branches in GitHub. Fortunately, the �
 
 1. Within your repo at GitHub.com
 Click the “branch: Master” dropdown button, type “test” in the “Find or create a branch…” field, then click 
-2. “Create Branch: test from ‘master’”
-
-![Create Brance](images/create-test.png)
-
+2. “Create branch: test from ‘master’”
+![Create Test](images/create-test.png)
 3. Congratulations! You just created the test branch.
 4. Now, click the “branch: test” dropdown button, type “dev.jsmith” in the “Find or create a branch…” field, then click “Create branch: dev.jsmith from ‘test’”
-
 ![Create Dev](/images/create-dev.png)
-
 5. Repeat step #4 above for all the other dev branches:
   * dev.jdoe
   * dev.bbarker
@@ -164,15 +160,12 @@ Ok, this is the last section… We’ve setup all the foundational pieces and ar
 2. Your homepage will look something like this:
 ![Circle CI](images/circle-ci-home.png)
 It’s empty because we haven’t started following any projects yet.
-
 3. Click the “+” button on the left hand nav bar
 4. Now click “CodeScience” under the “1) Your accounts” section
 5. Now filter the repos for your projects repo and click “Build Project”:
 ![Build Project](images/buildproject.png)
-
 6. Now, let’s setup the environment variables. In the “Your Branch Activity” pane, hover over your project and click the gear icon:
 ![Settings](images/envvars.png)
-
 7. Hopefully you wrote down the usernames and passwords+security tokens for all orgs that you setup in the “Create Orgs” step. Now, navigate to “Environment Variables”:
   * Enter “MASTER_USERNAME” for the “Name” field.
   * Enter the username of your user in the packaging org for the “Value” field.
