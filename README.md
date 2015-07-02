@@ -100,15 +100,14 @@ Now we need to add all the files and configurations necessary to make CircleCI w
 2. Clone the repo
   `git clone https://github.com/CodeScience/lattice.git`
   Replace “lattice” with the name of your project’s repo.
-  
 3. Change into the project folder
-cd lattice
+  `cd lattice`
 4. Add the circle-start repo
-`git remote add circle https://github.com/CodeScience/circle-start.git`
+  `git remote add circle https://github.com/CodeScience/circle-start.git`
 5. Fetch the contents of the circle-start repo
-`git fetch circle`
+  `git fetch circle`
 6. Merge the contents of the circle-start “deploy-with-CumulusCI” branch into your project
-`git pull circle deploy-with-CumulusCI`
+  `git pull circle deploy-with-CumulusCI`
 7. Don’t close the command line, you’ll need it for the next section
 
 ## Build Properties
