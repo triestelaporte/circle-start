@@ -142,8 +142,7 @@ Getting closer… Now we need to tell CircleCI how to login to each PDE.
 So… close… Now we need to create our branches in GitHub. Fortunately, the “MASTER” branch (the branch that represents our Packaging environment) already exists. It will serve as the foundation for all the other branches.
 
 1. Within your repo at GitHub.com
-Click the “branch: Master” dropdown button, type “test” in the “Find or create a branch…” field, then click 
-2. “Create branch: test from ‘master’”
+2. Click the “branch: Master” dropdown button, type “test” in the “Find or create a branch…” field, then click “Create branch: test from ‘master’”
 ![Create Test](images/create-test.png)
 3. Congratulations! You just created the test branch.
 4. Now, click the “branch: test” dropdown button, type “dev.jsmith” in the “Find or create a branch…” field, then click “Create branch: dev.jsmith from ‘test’”
