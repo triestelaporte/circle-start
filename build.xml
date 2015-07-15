@@ -17,7 +17,7 @@
   </target>
   <target name="DeployAndRunAllTests">
     <echo>Deploy and RunAllTests in Org with username: ${sf.username}</echo>
-    <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" maxPoll="${sf.maxPoll}" deployRoot="${user.dir}/src" logType="Detail" runallTests="${sf.runallTests}" />
+    <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" maxPoll="${sf.maxPoll}" deployRoot="${user.dir}/src" logType="Detail" testLevel="${sf.testLevel}" />
   </target>
   <!-- There's really no point in running this in CircleCI unless we can do something with the output-->
   <target name="SfApexDoc">
