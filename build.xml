@@ -1,28 +1,80 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:sf="antlib:com.salesforce" default="sf" basedir=".">
-  <target name="Build">
-    <echo>Continuous Integration Build</echo>
-    <taskdef resource="net/sf/antcontrib/antlib.xml" />
+<project basedir="." xmlns:sf="antlib:com.salesforce">
+    <!-- Load the package requirements from version.properties -->
+    <loadproperties srcFile="${basedir}/version.properties"/>
+
+    <!-- Load environment variables -->
     <property environment="env" />
-    <echo>Branch: ${env.CIRCLE_BRANCH}</echo>
-    <property file="build.${env.CIRCLE_BRANCH}.properties" />
-    <!--echo>Build Docs</echo>
-    <antcall target="SfApexDoc" /-->
-    <echo>${build.cmd}</echo>
-    <antcall target="${build.cmd}" />
-  </target>
-  <target name="DeployAndCheckOnly">
-    <echo>Deploy Code CheckOnly in Org with username: ${sf.username}</echo>
-    <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" maxPoll="${sf.maxPoll}" deployRoot="${user.dir}/src" logType="Detail" checkOnly="${sf.checkOnly}" />
-  </target>
-  <target name="DeployAndRunAllTests">
-    <echo>Deploy and RunAllTests in Org with username: ${sf.username}</echo>
-    <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" maxPoll="${sf.maxPoll}" deployRoot="${user.dir}/src" logType="Detail" testLevel="${sf.testLevel}" />
-  </target>
-  <!-- There's really no point in running this in CircleCI unless we can do something with the output-->
-  <target name="SfApexDoc">
-  	<java fork="true" jar="${user.dir}/lib/SfApexDoc.jar" failonerror="true">
-  		<arg line="-d -s ${user.dir}/src/classes -t ${user.dir}/docs -a ${user.dir}/SfApexDocAuthor.txt -h ${user.dir}/SfApexDocHome.txt" />
-  	</java>
-  </target>
+
+    <!-- Check if the CUMULUSCI_PATH environment variable is set -->
+    <fail>
+        <condition>
+            <not><isset property="env.CUMULUSCI_PATH" /></not>
+        </condition>
+        CUMULUSCI_PATH is Required!
+
+        This project uses the CumulusCI build scripts which must be checked out and 
+        referenced in an environment variable before you can run the build scripts.
+
+        To configure the build scripts, do the following:
+
+        1. Clone the CumulusCI GitHub repository to a local folder: 
+            https://github.com/SalesforceFoundation/CumulusCI
+
+        2. Set the CUMULUSCI_PATH environment variable to the path to CumulusCI
+
+        If you are on a unix based system, the following commands should work:
+
+            git clone https://github.com/SalesforceFoundation/CumulusCI ~/CumulusCI
+            export CUMULUSCI_PATH=~/CumulusCI
+    </fail>
+    
+    <!-- Load CumulusCI build targets -->
+    <import file="${env.CUMULUSCI_PATH}/build/build.xml" />
+
+    <!-- Add project specific build targets and CumulusCI overrides here -->
+    <target name="CIbuild">
+      <var name="sf.orgname" value="TBD" />
+      <var name="sf.username" value="TBD" />
+      <var name="sf.password" value="TBD" />
+      <var name="sf.serverurl" value="https://login.salesforce.com" />
+      <var name="ci.buildtype" value="deployCIPackageOrg" />
+      
+      <!-- int branch -->
+      <if>
+        <equals arg1="${env.CIRCLE_BRANCH}" arg2="int" />
+        <then>
+          <var name="sf.orgname" value="QA1" />
+          <var name="sf.username" value="${env.MADISON_QA1_USERNAME}" />
+          <var name="sf.password" value="${env.MADISON_QA1_PASSWORD}" />
+        </then>
+        
+        <!-- master branch -->
+        <elseif>
+         <equals arg1="${env.CIRCLE_BRANCH}" arg2="master" />
+	        <then>
+	          <var name="sf.orgname" value="Master Package" />
+	          <var name="sf.username" value="${env.MADISON_MASTERPKG_USERNAME}" />
+	          <var name="sf.password" value="${env.MADISON_MASTERPKG_PASSWORD}" />
+	        </then>
+	      </elseif>
+        
+        <!-- feature branches -->
+        <else>
+          <var name="sf.orgname" value="Feature-Auto" />
+          <var name="sf.username" value="${env.MADISON_FEATUREAUTO_USERNAME}" />
+          <var name="sf.password" value="${env.MADISON_FEATUREAUTO_PASSWORD}" />
+        </else>
+      </if>
+      
+      <taskdef resource="net/sf/antcontrib/antlib.xml" />
+      <property environment="env" />
+      
+      <echo>Continuous Integration Build</echo>
+      <echo>Branch: ${env.CIRCLE_BRANCH}</echo>
+      <echo>Org Name: ${sf.orgname}</echo>
+      <echo>Build Type: ${ci.buildtype}</echo>
+      <echo>Package Name: ${cumulusci.package.name}</echo>
+      <antcall target="${ci.buildtype}" />
+    </target>
+    
 </project>
