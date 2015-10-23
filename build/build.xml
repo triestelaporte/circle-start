@@ -39,7 +39,15 @@
 		<echo>SF User: ${sf.username}</echo>
 		<echo>Build Cmd: ${build.cmd}</echo>
 		
-		<antcall target="cleanProfilesPermSets" />
+		<if>
+			<and>
+				<available file="src/profiles" type="dir" />
+				<available file="src/permissionsets" type="dir" />
+			</and>
+			<then>
+				<antcall target="cleanProfilesPermSets" />
+			</then>
+		</if>
 		<antcall target="DeleteMetaData" />
 		<antcall target="UpdateMetaData" />
 		<antcall target="${build.cmd}" />
