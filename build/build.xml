@@ -6,7 +6,9 @@
 	<target name="Build">
 		<echo>Continuous Integration Build</echo>
 		<taskdef resource="net/sf/antcontrib/antlib.xml" />
+		<taskdef name="sftoken" classname="com.codescience.ciaccelerator.SFDCToken"/>
 		<property environment="env" />
+		
 		<echo>Branch: ${env.CIRCLE_BRANCH}</echo>
 		
 		<if>
@@ -32,11 +34,34 @@
 
 				<echo>Branch Clean: ${branch_clean}</echo>
 
-				<var name="sf.username" value="$${env.${branch_clean}_USERNAME}"/>
-				<var name="sf.password" value="$${env.${branch_clean}_PASSWD}"/>
+				<var name="sf.refreshToken" value="$${env.${branch_clean}_TOKEN}"/>
+
+				<if>
+					<not>
+						<isset property="sf.refreshToken" />
+					</not>
+					<then>
+						<var name="sf.username" value="$${env.${branch_clean}_USERNAME}"/>
+						<var name="sf.password" value="$${env.${branch_clean}_PASSWD}"/>
+					</then>
+				</if>
 			</else>
 		</if>
+
+		<if>
+			<isset property="sf.refreshToken" />
+			<then>
+				<sftoken refreshToken="${sf.refreshToken}"
+						 clientId="${sf.client_id}"
+						 clientSecret="${sf.client_secret}"
+						 loginUrl="${sf.serverurl}"
+						 propertyName="sf.sessionId" />
+			</then>
+		</if>
+
 		<echo>SF User: ${sf.username}</echo>
+		<echo>SF RToken: ${sf.refreshToken}</echo>
+		<echo>SF Session: ${sf.sessionId}</echo>
 		<echo>Build Cmd: ${build.cmd}</echo>
 		
 		<antcall target="cleanProfilesPermSets" />
