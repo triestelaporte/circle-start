@@ -1,16 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:sf="antlib:com.salesforce" default="Build" basedir=".">
+<project xmlns:sf="antlib:com.salesforce"
+		 xmlns:sf-login="antlib:com.codescience.ciaccelerator"
+	 default="Build" basedir=".">
 	
 	<include file="cumulusci.xml" />
 	
 	<target name="Build">
 		<echo>Continuous Integration Build</echo>
 		<taskdef resource="net/sf/antcontrib/antlib.xml" />
-		<taskdef name="sftoken" classname="com.codescience.ciaccelerator.SFDCToken"/>
 		<property environment="env" />
 		
 		<echo>Branch: ${env.CIRCLE_BRANCH}</echo>
 		
+		<!--
+			 Load properties
+			 If there are branch-specific properties, load them
+			 otherwise, default to "build.properties"
+		 -->
 		<if>
 			<available file="build.${env.CIRCLE_BRANCH}.properties"/>
 			<then>
@@ -18,49 +24,60 @@
 			</then>
 			<else>
 				<property file="build.properties" />
-				
-				<!-- remove "." and "-" from the branch name.
-				Env.Properties cannot have these chars -->
-				<propertyregex property="branch_clean"
-						  input="${env.CIRCLE_BRANCH}"
-						  regexp="[\.\-]"
-						  replace="_"
-						  defaultValue="${env.CIRCLE_BRANCH}"
-						  global="true"
-						  casesensitive="false" />
-				<echo>Branch Clean: ${branch_clean}</echo>
-
-				<upper to="branch_clean" string="${branch_clean}"/>
-
-				<echo>Branch Clean: ${branch_clean}</echo>
-
-				<var name="sf.refreshToken" value="$${env.${branch_clean}_TOKEN}"/>
-
-				<if>
-					<not>
-						<isset property="sf.refreshToken" />
-					</not>
-					<then>
-						<var name="sf.username" value="$${env.${branch_clean}_USERNAME}"/>
-						<var name="sf.password" value="$${env.${branch_clean}_PASSWD}"/>
-					</then>
-				</if>
 			</else>
 		</if>
 
-		<if>
-			<isset property="sf.refreshToken" />
-			<then>
-				<sftoken refreshToken="${sf.refreshToken}"
-						 clientId="${sf.client_id}"
-						 clientSecret="${sf.client_secret}"
-						 loginUrl="${sf.serverurl}"
-						 propertyName="sf.sessionId" />
-			</then>
-		</if>
+		<!-- 
+			Determine SF Credentials
+		 -->
+		<!-- remove "." and "-" from the branch name.
+		Env.Properties cannot have these chars -->
+		<propertyregex property="branch_clean"
+				  input="${env.CIRCLE_BRANCH}"
+				  regexp="[\.\-]"
+				  replace="_"
+				  defaultValue="${env.CIRCLE_BRANCH}"
+				  global="true"
+				  casesensitive="false" />
+		<upper to="branch_clean" string="${branch_clean}"/>
+		<echo>Branch Clean: ${branch_clean}</echo>
 
-		<echo>SF User: ${sf.username}</echo>
-		<echo>SF RToken: ${sf.refreshToken}</echo>
+		<if>
+			<and>
+				<isset property="env.${branch_clean}_TOKEN" />
+			</and>
+			<then>
+				<var name="sf.refreshToken" value="$${env.${branch_clean}_TOKEN}"/>
+				<echo>Using SF RefreshToken: ${sf.refreshToken}</echo>
+				<sf-login:loginRefreshTokenFlow  refreshToken="${sf.refreshToken}"
+											 clientId="${sf.client_id}"
+											 clientSecret="${sf.client_secret}"
+											 loginUrl="${sf.serverurl}"
+											 propertyName="sf.sessionId" />
+			</then>
+			<else>
+				<if>
+					<and>
+						<isset property="env.${branch_clean}_USERNAME" />
+						<isset property="env.${branch_clean}_PASSWD" />
+					</and>
+					<then>
+						<var name="sf.username" value="$${env.${branch_clean}_USERNAME}"/>
+						<var name="sf.password" value="$${env.${branch_clean}_PASSWD}"/>
+						<echo>Using Username: ${sf.username}</echo>
+						<sf-login:loginUsernamePasswordFlow  username="${sf.username}"
+														 password="${sf.password}"
+														 clientId="${sf.client_id}"
+														 clientSecret="${sf.client_secret}"
+														 loginUrl="${sf.serverurl}"
+														 propertyName="sf.sessionId" />
+					</then>
+					<else>
+						<fail message="No authentication info found. Please specify a {BRANCH-NAME}_TOKEN or {BRANCH-NAME}_USERNAME AND {BRANCH-NAME}_PASSWD environment variables." />
+					</else>
+				</if>
+			</else>
+		</if>
 		<echo>SF Session: ${sf.sessionId}</echo>
 		<echo>Build Cmd: ${build.cmd}</echo>
 		
@@ -226,12 +243,11 @@
 	<target name="DeployAndCheckOnly">
 		<echo>Deploy Code CheckOnly in Org with username: ${sf.username}</echo>
 		<sf:deploy 
-			username="${sf.username}" 
-			password="${sf.password}" 
+			sessionId="${sf.sessionId" 
 			serverurl="${sf.serverurl}" 
 			maxPoll="${sf.maxPoll}" 
 			deployRoot="${user.dir}/src" 
-			logType="${env.SF_LOGDETAIL}" 
+			logType="${sf.logdetail}" 
 			checkOnly="${sf.checkOnly}" />
 	</target>
 	
@@ -241,15 +257,14 @@
 	-->
 	<target name="DeployAndRunAllTests">
 		<echo>Deploy and RunAllTests in Org with username: ${sf.username}</echo>
-		<echo>Logging Level:  ${env.SF_LOGDETAIL}</echo>
+		<echo>Logging Level:  ${sf.logdetail}</echo>
 		<echo>Test Level:  ${sf.testLevel}</echo>
 		<sf:deploy 
-			username="${sf.username}" 
-			password="${sf.password}" 
+			sessionId="${sf.sessionId" 
 			serverurl="${sf.serverurl}" 
 			maxPoll="${sf.maxPoll}" 
 			deployRoot="${user.dir}/src" 
-			logType="${env.SF_LOGDETAIL}"
+			logType="${sf.logdetail}"
 			testLevel="${sf.testLevel}" />
 	</target>
 	
@@ -260,12 +275,11 @@
 	<target name="DeployWithoutTests">
 		<echo>Deploy without running tests in Org with username: ${sf.username}</echo>
 		<sf:deploy 
-			username="${sf.username}" 
-			password="${sf.password}" 
+			sessionId="${sf.sessionId" 
 			serverurl="${sf.serverurl}" 
 			maxPoll="${sf.maxPoll}" 
 			deployRoot="${user.dir}/src" 
-			logType="${env.SF_LOGDETAIL}"
+			logType="${sf.logdetail}"
 			runallTests="false" />
 	</target>
 
@@ -306,8 +320,7 @@
 		<echo>User: ${sf.username}</echo>
 		<echo>Package: ${sf.package.name}</echo>
 		<sf:retrieve 
-			username="${sf.username}" 
-			password="${sf.password}" 
+			sessionId="${sf.sessionId" 
 			serverurl="${sf.serverurl}" 
 			retrieveTarget="src" 
 			packageNames="${sf.package.name}"/>
@@ -391,8 +404,7 @@
 		<!-- Fetch all metadata in the  package from target org -->
 		<mkdir dir="uninstallsrc"/>
 		<sf:retrieve 
-			username="${sf.username}" 
-			password="${sf.password}" 
+			sessionId="${sf.sessionId" 
 			serverurl="${sf.serverurl}" 
 			retrieveTarget="uninstallsrc" 
 			packageNames="${sf.package.name}"/>
@@ -404,12 +416,11 @@
 		
 		<!-- deploy the destructiveChanges.xml package -->
 		<sf:deploy 
-			username="${sf.username}" 
-			password="${sf.password}" 
+			sessionId="${sf.sessionId" 
 			serverurl="${sf.serverurl}" 
 			deployRoot="uninstall" 
 			runAllTests="false" 
-			logType="${env.SF_LOGDETAIL}"
+			logType="${sf.logdetail}"
 			purgeOnDelete="true" />
 
 		<delete dir="uninstallsrc" />
