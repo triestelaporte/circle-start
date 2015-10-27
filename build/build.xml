@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:sf="antlib:com.salesforce"
-		 xmlns:sf-login="antlib:com.codescience.ciaccelerator"
+		 xmlns:sf-login="antlib:com.codescience.sflogin"
 	 default="Build" basedir=".">
 	
 	<include file="cumulusci.xml" />
@@ -49,7 +49,7 @@
 			<then>
 				<var name="sf.refreshToken" value="$${env.${branch_clean}_TOKEN}"/>
 				<echo>Using SF RefreshToken: ${sf.refreshToken}</echo>
-				<sf-login:loginRefreshTokenFlow  refreshToken="${sf.refreshToken}"
+				<sf-login:refreshTokenFlow  refreshToken="${sf.refreshToken}"
 											 clientId="${sf.client_id}"
 											 clientSecret="${sf.client_secret}"
 											 loginUrl="${sf.serverurl}"
@@ -65,7 +65,7 @@
 						<var name="sf.username" value="$${env.${branch_clean}_USERNAME}"/>
 						<var name="sf.password" value="$${env.${branch_clean}_PASSWD}"/>
 						<echo>Using Username: ${sf.username}</echo>
-						<sf-login:loginUsernamePasswordFlow  username="${sf.username}"
+						<sf-login:usernamePasswordFlow  username="${sf.username}"
 														 password="${sf.password}"
 														 clientId="${sf.client_id}"
 														 clientSecret="${sf.client_secret}"
