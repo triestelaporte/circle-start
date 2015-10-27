@@ -52,7 +52,7 @@
 				<sf-login:refreshTokenFlow  refreshToken="${sf.refreshToken}"
 											 clientId="${sf.client_id}"
 											 clientSecret="${sf.client_secret}"
-											 loginUrl="${sf.serverurl}"
+											 loginUrl="${sf.loginurl}"
 											 propertyName="sf.sessionId" />
 			</then>
 			<else>
@@ -69,7 +69,7 @@
 														 password="${sf.password}"
 														 clientId="${sf.client_id}"
 														 clientSecret="${sf.client_secret}"
-														 loginUrl="${sf.serverurl}"
+														 loginUrl="${sf.loginurl}"
 														 propertyName="sf.sessionId" />
 					</then>
 					<else>
@@ -320,8 +320,9 @@
 		<echo>User: ${sf.username}</echo>
 		<echo>Package: ${sf.package.name}</echo>
 		<sf:retrieve 
-			sessionId="${sf.sessionId}" 
-			serverurl="${sf.serverurl}" 
+			username="${sf.username}" 
+			password="${sf.password}" 
+			serverurl="${sf.loginurl}" 
 			retrieveTarget="src" 
 			packageNames="${sf.package.name}"/>
 	</target>
