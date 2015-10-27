@@ -243,7 +243,7 @@
 	<target name="DeployAndCheckOnly">
 		<echo>Deploy Code CheckOnly in Org with username: ${sf.username}</echo>
 		<sf:deploy 
-			sessionId="${sf.sessionId" 
+			sessionId="${sf.sessionId}" 
 			serverurl="${sf.serverurl}" 
 			maxPoll="${sf.maxPoll}" 
 			deployRoot="${user.dir}/src" 
@@ -260,7 +260,7 @@
 		<echo>Logging Level:  ${sf.logdetail}</echo>
 		<echo>Test Level:  ${sf.testLevel}</echo>
 		<sf:deploy 
-			sessionId="${sf.sessionId" 
+			sessionId="${sf.sessionId}" 
 			serverurl="${sf.serverurl}" 
 			maxPoll="${sf.maxPoll}" 
 			deployRoot="${user.dir}/src" 
@@ -275,7 +275,7 @@
 	<target name="DeployWithoutTests">
 		<echo>Deploy without running tests in Org with username: ${sf.username}</echo>
 		<sf:deploy 
-			sessionId="${sf.sessionId" 
+			sessionId="${sf.sessionId}" 
 			serverurl="${sf.serverurl}" 
 			maxPoll="${sf.maxPoll}" 
 			deployRoot="${user.dir}/src" 
@@ -320,7 +320,7 @@
 		<echo>User: ${sf.username}</echo>
 		<echo>Package: ${sf.package.name}</echo>
 		<sf:retrieve 
-			sessionId="${sf.sessionId" 
+			sessionId="${sf.sessionId}" 
 			serverurl="${sf.serverurl}" 
 			retrieveTarget="src" 
 			packageNames="${sf.package.name}"/>
@@ -404,7 +404,7 @@
 		<!-- Fetch all metadata in the  package from target org -->
 		<mkdir dir="uninstallsrc"/>
 		<sf:retrieve 
-			sessionId="${sf.sessionId" 
+			sessionId="${sf.sessionId}" 
 			serverurl="${sf.serverurl}" 
 			retrieveTarget="uninstallsrc" 
 			packageNames="${sf.package.name}"/>
@@ -416,7 +416,7 @@
 		
 		<!-- deploy the destructiveChanges.xml package -->
 		<sf:deploy 
-			sessionId="${sf.sessionId" 
+			sessionId="${sf.sessionId}" 
 			serverurl="${sf.serverurl}" 
 			deployRoot="uninstall" 
 			runAllTests="false" 
