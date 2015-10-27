@@ -52,8 +52,7 @@
 				<sf-login:refreshTokenFlow  refreshToken="${sf.refreshToken}"
 											 clientId="${sf.client_id}"
 											 clientSecret="${sf.client_secret}"
-											 loginUrl="${sf.loginurl}"
-											 propertyName="sf.sessionId" />
+											 loginUrl="${sf.loginurl}" />
 			</then>
 			<else>
 				<if>
@@ -69,8 +68,7 @@
 														 password="${sf.password}"
 														 clientId="${sf.client_id}"
 														 clientSecret="${sf.client_secret}"
-														 loginUrl="${sf.loginurl}"
-														 propertyName="sf.sessionId" />
+														 loginUrl="${sf.loginurl}" />
 					</then>
 					<else>
 						<fail message="No authentication info found. Please specify a {BRANCH-NAME}_TOKEN or {BRANCH-NAME}_USERNAME AND {BRANCH-NAME}_PASSWD environment variables." />
@@ -79,6 +77,7 @@
 			</else>
 		</if>
 		<echo>SF Session: ${sf.sessionId}</echo>
+		<echo>SF Instance URL: ${sf.instanceurl}</echo>
 		<echo>Build Cmd: ${build.cmd}</echo>
 		
 		<antcall target="cleanProfilesPermSets" />
@@ -244,7 +243,7 @@
 		<echo>Deploy Code CheckOnly in Org with username: ${sf.username}</echo>
 		<sf:deploy 
 			sessionId="${sf.sessionId}" 
-			serverurl="${sf.serverurl}" 
+			serverurl="${sf.instanceurl}" 
 			maxPoll="${sf.maxPoll}" 
 			deployRoot="${user.dir}/src" 
 			logType="${sf.logdetail}" 
@@ -261,7 +260,7 @@
 		<echo>Test Level:  ${sf.testLevel}</echo>
 		<sf:deploy 
 			sessionId="${sf.sessionId}" 
-			serverurl="${sf.serverurl}" 
+			serverurl="${sf.instanceurl}" 
 			maxPoll="${sf.maxPoll}" 
 			deployRoot="${user.dir}/src" 
 			logType="${sf.logdetail}"
@@ -276,7 +275,7 @@
 		<echo>Deploy without running tests in Org with username: ${sf.username}</echo>
 		<sf:deploy 
 			sessionId="${sf.sessionId}" 
-			serverurl="${sf.serverurl}" 
+			serverurl="${sf.instanceurl}" 
 			maxPoll="${sf.maxPoll}" 
 			deployRoot="${user.dir}/src" 
 			logType="${sf.logdetail}"
@@ -406,7 +405,7 @@
 		<mkdir dir="uninstallsrc"/>
 		<sf:retrieve 
 			sessionId="${sf.sessionId}" 
-			serverurl="${sf.serverurl}" 
+			serverurl="${sf.instanceurl}" 
 			retrieveTarget="uninstallsrc" 
 			packageNames="${sf.package.name}"/>
 
@@ -418,7 +417,7 @@
 		<!-- deploy the destructiveChanges.xml package -->
 		<sf:deploy 
 			sessionId="${sf.sessionId}" 
-			serverurl="${sf.serverurl}" 
+			serverurl="${sf.instanceurl}" 
 			deployRoot="uninstall" 
 			runAllTests="false" 
 			logType="${sf.logdetail}"

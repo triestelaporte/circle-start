@@ -73,6 +73,7 @@ project.setProperty("downgradePackage", result);
       <attribute name="version" description="Version of managed package to install."/>
       <attribute name="packagePassword" description="Password used to install the pacakge. Optional." default=""/>
       <attribute name="sessionId" description="Salesforce sessionId."/>
+      <attribute name="serverurl" description="Salesforce server URL."/>
       <sequential>
           <!-- Generate optional <password> element? -->
           <if><equals arg1="@{packagePassword}" arg2=""/>
@@ -86,7 +87,7 @@ project.setProperty("downgradePackage", result);
           <mkdir dir="${basedir}/installdeploy/installedPackages"/>
           <echo file="${basedir}/installdeploy/package.xml"><![CDATA[<Package xmlns="http://soap.sforce.com/2006/04/metadata"><types><members>@{namespace}</members><name>InstalledPackage</name></types><version>${sf.apiVersion}</version></Package>]]></echo>
           <echo file="${basedir}/installdeploy/installedPackages/@{namespace}.installedPackage"><![CDATA[<InstalledPackage xmlns="http://soap.sforce.com/2006/04/metadata"><versionNumber>@{version}</versionNumber>${passwordElement}</InstalledPackage>]]></echo>
-          <sf:deploy deployRoot="${basedir}/installdeploy" sessionId="@{sessionId}" maxPoll="${cumulusci.maxPoll.managed}" />
+          <sf:deploy deployRoot="${basedir}/installdeploy" sessionId="@{sessionId}" serverUrl="@{serverurl}" maxPoll="${cumulusci.maxPoll.managed}" />
           <delete dir="${basedir}/installdeploy"/>
       </sequential>
   </macrodef>
@@ -95,6 +96,7 @@ project.setProperty("downgradePackage", result);
   <macrodef name="uninstallPackage" description="Uninstalls the given managed package">
       <attribute name="namespace" description="Namespace of managed package to install."/>
       <attribute name="sessionId" description="Salesforce sessionId."/>
+      <attribute name="serverurl" description="Salesforce server URL."/>
       <sequential>
           <!-- Generate working folder and metadata files representing the package to uninstall -->       
           <delete dir="${basedir}/installdeploy"/>
@@ -104,7 +106,7 @@ project.setProperty("downgradePackage", result);
           <echo file="${basedir}/installdeploy/package.xml"><![CDATA[<Package xmlns="http://soap.sforce.com/2006/04/metadata"><version>${sf.apiVersion}</version></Package>]]></echo>
           <echo file="${basedir}/installdeploy/destructiveChanges.xml"><![CDATA[<Package xmlns="http://soap.sforce.com/2006/04/metadata"><types><members>@{namespace}</members><name>InstalledPackage</name></types><version>${sf.apiVersion}</version></Package>]]></echo>
           <echo file="${basedir}/installdeploy/installedPackages/@{namespace}.installedPackage"><![CDATA[<InstalledPackage xmlns="http://soap.sforce.com/2006/04/metadata"><versionNumber>@{version}</versionNumber></InstalledPackage>]]></echo>
-          <sf:deploy deployRoot="${basedir}/installdeploy" sessionId="@{sessionId}" maxPoll="${cumulusci.maxPoll.managed}" />
+          <sf:deploy deployRoot="${basedir}/installdeploy" sessionId="@{sessionId}" serverUrl="@{serverurl}" maxPoll="${cumulusci.maxPoll.managed}" />
       </sequential>
   </macrodef>
 
@@ -172,7 +174,7 @@ project.setProperty("downgradePackage", result);
             </and>
             <then>
               <echo>Uninstalling @{namespace} ${InstalledPackage.@{namespace}.versionNumber} to downgrade to @{version}</echo>
-              <uninstallPackage namespace="@{namespace}" sessionId="${sf.sessionId}"/>
+              <uninstallPackage namespace="@{namespace}" sessionId="${sf.sessionId}" serverUrl="${sf.instanceurl}"/>
             </then>
             <else>
               <!-- just an upgrade, no need to uninstall first -->
@@ -182,7 +184,7 @@ project.setProperty("downgradePackage", result);
           <if>
             <not><equals arg1="@{version}" arg2="Not Installed" /></not>
             <then>
-              <installPackage namespace="@{namespace}" version="@{version}" sessionId="${sf.sessionId}"/>
+              <installPackage namespace="@{namespace}" version="@{version}" sessionId="${sf.sessionId}" serverUrl="${sf.instanceurl}"/>
             </then>
           </if>
         </then>
@@ -203,14 +205,14 @@ project.setProperty("downgradePackage", result);
       <!-- Retrieve standard objects (uses /build/standard_objects.xml as the manifest) -->
       <sf:retrieve 
         sessionId="${sf.sessionId}" 
-        serverurl="${sf.serverurl}" 
+        serverurl="${sf.instanceurl}" 
         retrieveTarget="@{dir}/standard" 
         unpackaged="${user.dir}/standard_objects.xml"/>
 
       <!-- Retrieve unpackaged metadata (uses /build/all_metadata_types.xml as the manifest) -->
       <sf:retrieve 
         sessionId="${sf.sessionId}" 
-        serverurl="${sf.serverurl}" 
+        serverurl="${sf.instanceurl}" 
         retrieveTarget="@{dir}/unpackaged" 
         unpackaged="${user.dir}/all_meta_types.xml"/>
 
@@ -246,7 +248,7 @@ project.setProperty("downgradePackage", result);
       </if>
       <sf:retrieve 
         sessionId="${sf.sessionId}" 
-        serverurl="${sf.serverurl}" 
+        serverurl="${sf.instanceurl}" 
         retrieveTarget="@{dir}" 
         packageNames="@{package}"/>
     </sequential>
@@ -949,7 +951,7 @@ project.setProperty("downgradePackage", result);
               <replaceNamespacePrefix dir="@{stagedir}" nsprefix="@{nsprefix}" />
                 
               <echo>Deploying unpackaged bundle @{subdir}</echo>
-              <sf:deploy sessionId="${sf.sessionId}" serverurl="${sf.serverurl}" deployRoot="@{stagedir}" runAllTests="false" maxPoll="${cumulusci.maxPoll.notest}" />
+              <sf:deploy sessionId="${sf.sessionId}" serverurl="${sf.instanceurl}" deployRoot="@{stagedir}" runAllTests="false" maxPoll="${cumulusci.maxPoll.notest}" />
               <delete dir="@{stagedir}" />
             </sequential>
           </for>
