@@ -72,6 +72,17 @@
 					</then>
 					<else>
 						<fail message="No authentication info found. Please specify a {BRANCH-NAME}_TOKEN or {BRANCH-NAME}_USERNAME AND {BRANCH-NAME}_PASSWD environment variables." />
+						<!--
+							// Example of JWT Flow
+							<echo>Using JWT cert "CertificateAlias" in keystore "./build/keystore.jks"</echo>
+							<sf-login:jwtFlow  username="${sf.username}"
+												 keystorePath="./build/keystore.jks"
+												 keystorePassword="${env.keystorepass}"
+												 certAlias="CertificateAlias"
+												 certPassword="${env.certpass}"
+												 clientId="${sf.client_id}"
+												 loginUrl="${sf.loginurl}" />
+						-->
 					</else>
 				</if>
 			</else>
