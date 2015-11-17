@@ -48,7 +48,7 @@
 			</and>
 			<then>
 				<var name="sf.refreshToken" value="$${env.${branch_clean}_TOKEN}"/>
-				<echo>Using SF RefreshToken: ${sf.refreshToken}</echo>
+				<echo>Using SF RefreshToken</echo>
 				<sf-login:refreshTokenFlow  refreshToken="${sf.refreshToken}"
 											 clientId="${sf.client_id}"
 											 clientSecret="${sf.client_secret}"
@@ -87,8 +87,9 @@
 				</if>
 			</else>
 		</if>
+		<echo>SF Username: ${sf.username}</echo>
 		<echo>SF Session: ${sf.sessionId}</echo>
-		<echo>SF Instance URL: ${sf.instanceurl}</echo>
+		<echo>SF Instance URL: ${sf.instanceUrl}</echo>
 		<echo>Build Cmd: ${build.cmd}</echo>
 		
 		<antcall target="cleanProfilesPermSets" />
@@ -254,7 +255,7 @@
 		<echo>Deploy Code CheckOnly in Org with username: ${sf.username}</echo>
 		<sf:deploy 
 			sessionId="${sf.sessionId}" 
-			serverurl="${sf.instanceurl}" 
+			serverurl="${sf.instanceUrl}" 
 			maxPoll="${sf.maxPoll}" 
 			deployRoot="${user.dir}/src" 
 			logType="${sf.logdetail}" 
@@ -271,7 +272,7 @@
 		<echo>Test Level:  ${sf.testLevel}</echo>
 		<sf:deploy 
 			sessionId="${sf.sessionId}" 
-			serverurl="${sf.instanceurl}" 
+			serverurl="${sf.instanceUrl}" 
 			maxPoll="${sf.maxPoll}" 
 			deployRoot="${user.dir}/src" 
 			logType="${sf.logdetail}"
@@ -286,7 +287,7 @@
 		<echo>Deploy without running tests in Org with username: ${sf.username}</echo>
 		<sf:deploy 
 			sessionId="${sf.sessionId}" 
-			serverurl="${sf.instanceurl}" 
+			serverurl="${sf.instanceUrl}" 
 			maxPoll="${sf.maxPoll}" 
 			deployRoot="${user.dir}/src" 
 			logType="${sf.logdetail}"
@@ -416,7 +417,7 @@
 		<mkdir dir="uninstallsrc"/>
 		<sf:retrieve 
 			sessionId="${sf.sessionId}" 
-			serverurl="${sf.instanceurl}" 
+			serverurl="${sf.instanceUrl}" 
 			retrieveTarget="uninstallsrc" 
 			packageNames="${sf.package.name}"/>
 
@@ -428,7 +429,7 @@
 		<!-- deploy the destructiveChanges.xml package -->
 		<sf:deploy 
 			sessionId="${sf.sessionId}" 
-			serverurl="${sf.instanceurl}" 
+			serverurl="${sf.instanceUrl}" 
 			deployRoot="uninstall" 
 			runAllTests="false" 
 			logType="${sf.logdetail}"
