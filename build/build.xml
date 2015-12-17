@@ -34,7 +34,7 @@
 		Env.Properties cannot have these chars -->
 		<propertyregex property="branch_clean"
 				  input="${env.CIRCLE_BRANCH}"
-				  regexp="[\.\-]"
+				  regexp="[\.\-\/]"
 				  replace="_"
 				  defaultValue="${env.CIRCLE_BRANCH}"
 				  global="true"
