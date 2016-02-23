@@ -48,8 +48,8 @@
 			</and>
 			<then>
 				<var name="sf.refreshToken" value="$${env.${branch_clean}_TOKEN}"/>
-				<var name="sf.client_id" value="$${env.${branch_clean}_CLIENTID}"/>
-				<var name="sf.client_secret" value="$${env.${branch_clean}_CLIENTSECRET}"/>
+				<var name="sf.client_id" value="${env.CLIENTID}"/>
+				<var name="sf.client_secret" value="${env.CLIENTSECRET}"/>
 				<echo>Using SF RefreshToken</echo>
 				<sf-login:refreshTokenFlow  refreshToken="${sf.refreshToken}"
 											 clientId="${sf.client_id}"
