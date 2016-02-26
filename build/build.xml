@@ -419,11 +419,22 @@
 
 		<!-- Fetch all metadata in the  package from target org -->
 		<mkdir dir="uninstallsrc"/>
-		<sf:retrieve 
-			sessionId="${sf.sessionId}" 
-			serverurl="${sf.instanceUrl}" 
-			retrieveTarget="uninstallsrc" 
-			packageNames="${sf.package.name}"/>
+		<if>
+			<not><equals arg1="${sf.package.name}" arg2="NOTSET" /></not>
+			<then>
+				<sf:retrieve 
+					sessionId="${sf.sessionId}" 
+					serverurl="${sf.instanceUrl}" 
+					retrieveTarget="uninstallsrc" 
+					packageNames="${sf.package.name}"/>
+			</then>
+			<else>
+				<sf:retrieve 
+					sessionId="${sf.sessionId}" 
+					serverurl="${sf.instanceUrl}" 
+					retrieveTarget="uninstallsrc"/>
+			</else>
+		</if>
 
 		<!-- Build a destructiveChanges.xml pacckage to delete metadata in org but not in repo -->
 		<buildDestroyStaleMetadata srcdir="uninstallsrc" commdir="../src" dir="uninstall" />
