@@ -427,30 +427,34 @@
 					serverurl="${sf.instanceUrl}" 
 					retrieveTarget="uninstallsrc" 
 					packageNames="${sf.package.name}"/>
-			</then>
-			<else>
-				<sf:retrieve 
+
+				<!-- Build a destructiveChanges.xml pacckage to delete metadata in org but not in repo -->
+				<buildDestroyStaleMetadata srcdir="uninstallsrc" commdir="../src" dir="uninstall" />
+				
+				<copy file="${user.dir}/build/uninstall/destructiveChanges.xml" todir="${env.CIRCLE_ARTIFACTS}"/>
+				
+				<!-- deploy the destructiveChanges.xml package -->
+				<sf:deploy 
 					sessionId="${sf.sessionId}" 
 					serverurl="${sf.instanceUrl}" 
-					retrieveTarget="uninstallsrc"/>
+					deployRoot="uninstall" 
+					runAllTests="false" 
+					logType="${sf.logdetail}"
+					purgeOnDelete="true" />
+
+				<delete dir="uninstallsrc" />
+				<delete dir="uninstall" />
+			</then>
+			<else>
+				<!-- <retrieveUnpackaged dir="uninstallsrc"/>
+				<delete file="uninstallsrc/package.xml" />
+				<buildPackageXml package="${sf.package.name}" version="${sf.apiVersion}" srcDir="uninstallsrc" />
+				<mkdir dir="${env.CIRCLE_ARTIFACTS}/uninstallsrc"/>
+				<copy todir="${env.CIRCLE_ARTIFACTS}/uninstallsrc">
+					<fileset dir="uninstallsrc"/>
+				</copy> -->
+				<echo>destroyStaleMetadata doesn't work when source controlled code is packaged, yet no packagename is defined... skipping</echo>
 			</else>
 		</if>
-
-		<!-- Build a destructiveChanges.xml pacckage to delete metadata in org but not in repo -->
-		<buildDestroyStaleMetadata srcdir="uninstallsrc" commdir="../src" dir="uninstall" />
-		
-		<copy file="${user.dir}/build/uninstall/destructiveChanges.xml" todir="${env.CIRCLE_ARTIFACTS}"/>
-		
-		<!-- deploy the destructiveChanges.xml package -->
-		<sf:deploy 
-			sessionId="${sf.sessionId}" 
-			serverurl="${sf.instanceUrl}" 
-			deployRoot="uninstall" 
-			runAllTests="false" 
-			logType="${sf.logdetail}"
-			purgeOnDelete="true" />
-
-		<delete dir="uninstallsrc" />
-		<delete dir="uninstall" />
 	</target>
 </project>

@@ -199,22 +199,22 @@ project.setProperty("downgradePackage", result);
       <!-- Create a clean output directory structure -->
       <delete dir="@{dir}" />
       <mkdir dir="@{dir}"/>
-      <mkdir dir="@{dir}/unpackaged"/>
-      <mkdir dir="@{dir}/standard"/>
+      <!--mkdir dir="@{dir}/unpackaged"/-->
+      <!--mkdir dir="@{dir}/standard"/-->
 
       <!-- Retrieve standard objects (uses /build/standard_objects.xml as the manifest) -->
-      <sf:retrieve 
+      <!--sf:retrieve 
         sessionId="${sf.sessionId}" 
         serverurl="${sf.instanceUrl}" 
         retrieveTarget="@{dir}/standard" 
-        unpackaged="${user.dir}/standard_objects.xml"/>
+        unpackaged="${user.dir}/build/standard_objects.xml"/-->
 
       <!-- Retrieve unpackaged metadata (uses /build/all_metadata_types.xml as the manifest) -->
       <sf:retrieve 
         sessionId="${sf.sessionId}" 
         serverurl="${sf.instanceUrl}" 
-        retrieveTarget="@{dir}/unpackaged" 
-        unpackaged="${user.dir}/all_meta_types.xml"/>
+        retrieveTarget="${user.dir}/build/@{dir}" 
+        unpackaged="${user.dir}/build/all_meta_types.xml"/>
 
     </sequential>
   </macrodef>
