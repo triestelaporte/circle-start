@@ -375,6 +375,9 @@ project.setProperty("downgradePackage", result);
           	<case value="customPermissions">
               <property name="typename" value="CustomPermission" />
             </case>
+            <case value="flows">
+              <property name="typename" value="Flow" />
+            </case>
             <default/>
           </switch>
 
