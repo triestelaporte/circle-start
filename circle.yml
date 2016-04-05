@@ -3,5 +3,10 @@ machine:
     version: oraclejdk8
 test:
   override:
+    # This step just builds the package.xml and cleans profiles
+    - ant -lib lib/ -buildfile build/build.xml SetupOnly: 
+        timeout: 6000
+  
+  #  This step deploys the SFDC stuff
     - ant -lib lib/ -buildfile build/build.xml Build: 
-        timeout: 600
+        timeout: 6000
