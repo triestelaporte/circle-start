@@ -3,5 +3,23 @@ machine:
     version: oraclejdk8
 test:
   override:
-    - ant -lib lib/ Build: 
-        timeout: 600
+    # This step just builds the package.xml and cleans profiles
+    - ant -lib lib/ -buildfile build/build.xml SetupOnly: 
+        timeout: 6000
+  
+  #  This step deploys the SFDC stuff
+    - ant -lib lib/ -buildfile build/build.xml Build: 
+        timeout: 6000
+  
+  # Uncomment the following if selenium tests are needed
+    #run Selenium Tests #1
+    #- ant -lib lib/ -buildfile build/buildSelenium1.xml Build: 
+        #timeout: 6000
+        
+    #run Selenium Tests #2
+    #- ant -lib lib/ -buildfile build/buildSelenium2.xml Build: 
+        #timeout: 6000
+        
+    #run Selenium Tests #3
+    #- ant -lib lib/ -buildfile build/buildSelenium3.xml Build: 
+        #timeout: 6000
