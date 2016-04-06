@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:sf="antlib:com.salesforce" default="Build" basedir=".">
+<project xmlns:sf="antlib:com.salesforce" xmlns:artifact="antlib:org.apache.maven.artifact.ant" default="Build" basedir=".">
 	
 	<include file="cumulusci.xml" />
 	
@@ -13,9 +13,12 @@
 			<available file="build.${env.CIRCLE_BRANCH}.properties"/>
 			<then>
 				<property file="build.${env.CIRCLE_BRANCH}.properties" />
+				<echo>Properties File: build.${env.CIRCLE_BRANCH}.properties</echo>
 			</then>
 			<else>
 				<property file="build.properties" />
+				
+				<echo>Properties File: build.properties</echo>
 				
 				<!-- remove "." and "-" from the branch name.
 				Env.Properties cannot have these chars -->
@@ -26,12 +29,7 @@
 						  defaultValue="${env.CIRCLE_BRANCH}"
 						  global="true"
 						  casesensitive="false" />
-				<echo>Branch Clean: ${branch_clean}</echo>
-
-				<upper to="branch_clean" string="${branch_clean}"/>
-
-				<echo>Branch Clean: ${branch_clean}</echo>
-
+					<!-- echo>Branch Clean: ${branch_clean}</echo -->
 				<var name="sf.username" value="$${env.${branch_clean}_USERNAME}"/>
 				<var name="sf.password" value="$${env.${branch_clean}_PASSWD}"/>
 			</else>
@@ -39,78 +37,53 @@
 		<echo>SF User: ${sf.username}</echo>
 		<echo>Build Cmd: ${build.cmd}</echo>
 		
-		<antcall target="cleanProfilesPermSets" />
-		<antcall target="DeleteMetaData" />
-		<antcall target="UpdateMetaData" />
 		<antcall target="${build.cmd}" />
+		
+		<!--
+		<if>
+			<equals arg1="@{env.CIRCLE_BRANCH}" arg2="MASTER" />
+			<then>
+				<antcall target="UnInstallManagedPackage" />
+			</then>
+		</if>
+		-->
+		
 	</target>
 	
-	<scriptdef language="javascript" name="upper">
-		<attribute name="string" /> 
-    	<attribute name="to" />
-	    project.setProperty( attributes.get( "to" ),
-	                         attributes.get( "string" ).toUpperCase() );
-	</scriptdef>
-
-	<target name="UpdateMetaData">
-		<propertyselector property="src.configs"
-						delimiter=","
-						match="(src\..*)"
-						select="\1"
-						casesensitive="false" />
+	<target name="SetupOnly" >
+		<echo>Cleaning Profiles, Deleting/Updating Flagged Metadata, and Building Package.xml Only</echo>
 		<if>
-			<isset property="${src.configs}" />
+			<available file="build.${env.CIRCLE_BRANCH}.properties"/>
 			<then>
-				<echo>Updating MetaData: ${src.configs}</echo>
-				<for list="${src.configs}" param="metadata.propertyName" delimiter=",">
-					<sequential>
-						<propertycopy property="metadata.propertyValue" from="@{metadata.propertyName}" silent="true" override="true" />
-						<echo>@{metadata.propertyName} == ${metadata.propertyValue}</echo>
-						
-						<propertyregex property="metadata.folder"
-						  input="@{metadata.propertyName}"
-						  regexp="src\.([^\.]+)\..+"
-						  select="\1"
-						  casesensitive="false"
-						  override="true" />
-						<echo>metadata.folder == ${metadata.folder}</echo>
-						
-						<propertyregex property="metadata.file"
-						  input="@{metadata.propertyName}"
-						  regexp="src\.${metadata.folder}\.([^\.]+)\..+"
-						  select="\1"
-						  casesensitive="false"
-						  override="true" />
-						<echo>metadata.file == ${metadata.file}</echo>
-						
-						<propertyregex property="metadata.type"
-						  input="@{metadata.propertyName}"
-						  regexp="src\.${metadata.folder}\.${metadata.file}\.([^\.]+)\..+"
-						  select="\1"
-						  casesensitive="false"
-						  override="true" />
-						<echo>metadata.type == ${metadata.type}</echo>
-						
-						<propertyregex property="metadata.element"
-						  input="@{metadata.propertyName}"
-						  regexp="src\.${metadata.folder}\.${metadata.file}\.${metadata.type}\.([^\.]+)"
-						  select="\1"
-						  casesensitive="false"
-						  override="true" />
-						<echo>metadata.element == ${metadata.element}</echo>
-						
-						<replaceregexp file="../src/${metadata.folder}/${metadata.file}.${metadata.type}"
-					match="((?&lt;=${metadata.element}\&gt;).*?(?=\&lt;\/${metadata.element}))"
-					replace="${metadata.propertyValue}"
-					byline="true" />
-						
-					</sequential>
-				</for>
+				<property file="build.${env.CIRCLE_BRANCH}.properties" />
+				<echo>Properties File: build.${env.CIRCLE_BRANCH}.properties</echo>
 			</then>
 			<else>
-				<echo>No MetaData to update from properties</echo>
+				<property file="build.properties" />
+				
+				<echo>Properties File: build.properties</echo>
+				
+				<!-- remove "." and "-" from the branch name.
+				Env.Properties cannot have these chars -->
+				<propertyregex property="branch_clean"
+						  input="${env.CIRCLE_BRANCH}"
+						  regexp="[\.\-]"
+						  replace="_"
+						  defaultValue="${env.CIRCLE_BRANCH}"
+						  global="true"
+						  casesensitive="false" />
+					<!-- echo>Branch Clean: ${branch_clean}</echo -->
+				<var name="sf.username" value="$${env.${branch_clean}_USERNAME}"/>
+				<var name="sf.password" value="$${env.${branch_clean}_PASSWD}"/>
 			</else>
 		</if>
+		
+		<echo>Metadata API Version: ${sf.apiVersion}</echo>
+		
+		<antcall target="CleanProfilesPermSets" />
+		<antcall target="DeleteMetaData" />
+		<antcall target="UpdateMetaData" />
+		<antcall target="JustBuildAndCopyPackageXML" />
 	</target>
 	
 	<target name="DeleteMetaData">
@@ -166,28 +139,94 @@
 		
 		
 	</target>
+	
+	<target name="UpdateMetaData">
+		<propertyselector property="src.configs"
+						delimiter=","
+						match="(src\..*)"
+						select="\1"
+						casesensitive="false" />
+		
+		<if> 
+			<not> 
+				<equals arg1="${src.configs}" arg2="$${src.configs}" /> 
+			</not> 
+			<then>
+				<echo>Updating MetaData: ${src.configs}</echo>
+				<for list="${src.configs}" param="metadata.propertyName" delimiter=",">
+					<sequential>
+						<propertycopy property="metadata.propertyValue" from="@{metadata.propertyName}" silent="true" override="true" />
+						<echo>@{metadata.propertyName} == ${metadata.propertyValue}</echo>
+						
+						<propertyregex property="metadata.folder"
+						  input="@{metadata.propertyName}"
+						  regexp="src\.([^\.]+)\..+"
+						  select="\1"
+						  casesensitive="false"
+						  override="true" />
+						<echo>metadata.folder == ${metadata.folder}</echo>
+						
+						<propertyregex property="metadata.file"
+						  input="@{metadata.propertyName}"
+						  regexp="src\.${metadata.folder}\.([^\.]+)\..+"
+						  select="\1"
+						  casesensitive="false"
+						  override="true" />
+						<echo>metadata.file == ${metadata.file}</echo>
+						
+						<propertyregex property="metadata.type"
+						  input="@{metadata.propertyName}"
+						  regexp="src\.${metadata.folder}\.${metadata.file}\.([^\.]+)\..+"
+						  select="\1"
+						  casesensitive="false"
+						  override="true" />
+						<echo>metadata.type == ${metadata.type}</echo>
+						
+						<propertyregex property="metadata.element"
+						  input="@{metadata.propertyName}"
+						  regexp="src\.${metadata.folder}\.${metadata.file}\.${metadata.type}\.([^\.]+)"
+						  select="\1"
+						  casesensitive="false"
+						  override="true" />
+						<echo>metadata.element == ${metadata.element}</echo>
+						
+						<replaceregexp file="../src/${metadata.folder}/${metadata.file}.${metadata.type}"
+					match="((?&lt;=${metadata.element}\&gt;).*?(?=\&lt;\/${metadata.element}))"
+					replace="${metadata.propertyValue}"
+					byline="true" />
+						
+					</sequential>
+				</for>
+			</then>
+			<else> 
+				<echo message="Update Configs not Set, skipping." /> 
+			</else> 
+		</if>
+	</target>
 
-	<target name="cleanProfilesPermSets">
+	<target name="CleanProfilesPermSets">
 		<echo>Cleaning Profiles &amp; Permission Sets</echo>
 
 		<taskdef name="xmltask" classname="com.oopsconsultancy.xmltask.ant.XmlTask"/>
 
 		<for param="file">
 			<path>
-				<fileset dir="../src/profiles" includes="*.profile" erroronmissingdir="false"/>
-				<fileset dir="../src/permissionsets" includes="*.permissionset" erroronmissingdir="false"/>
+				<fileset dir="../src/profiles" includes="*.profile"/>
+				<fileset dir="../src/permissionsets" includes="*.permissionset"/>
 			</path>
 			<sequential>
 				<echo>Cleaning file @{file}</echo>
 				<xmltask source="@{file}" dest="@{file}">
+					<remove path="//:userPermissions[:enabled = 'false']"/>
+					
+					<!--  TAL:  Commenting the following to allow revoking of permissions
 					<remove path="//:applicationVisibilities[:enabled = 'false']"/>
 					<remove path="//:classAccesses[:enabled = 'false']"/>
 					<remove path="//:fieldPermissions[:editable = 'false' and :readable = 'false']"/>
 					<remove path="//:objectPermissions[:allowCreate = 'false' and :allowDelete = 'false' and :allowEdit = 'false' and :allowRead = 'false' and :modifyAllRecords = 'false' and :viewAllRecords = 'false']"/>
 					<remove path="//:pageAccesses[:enabled = 'false']"/>
-					<remove path="//:userPermissions[:enabled = 'false']"/>
 					<remove path="//:recordTypeVisibilities[:visible = 'false']"/>
-					<remove path="//:tabSettings[:visibility = 'None']"/>
+					<remove path="//:tabSettings[:visibility = 'None']"/>-->
 				</xmltask>
 			</sequential>
 		</for>
@@ -254,10 +293,10 @@
 		<!-- Attempt to destroy any stale metadata but continue even if this fails -->
 		<trycatch>
 			<try>
-				<antcall target="destroyStaleMetadata" />
+				<antcall target="DestroyStaleMetadata" />
 			</try>
 			<catch>
-				<echo>First run of destroyStaleMetadata failed.  Ignoring for now but it may cause build failures in other targets.</echo>
+				<echo>First run of DestroyStaleMetadata failed.  Ignoring for now but it may cause build failures in other targets.</echo>
 			</catch>
 		</trycatch>
 
@@ -265,7 +304,7 @@
 		<antcall target="DeployWithoutTests" />
 
 		<!-- Delete any metadata from the org which is not in the repo -->
-		<antcall target="destroyStaleMetadata" />
+		<antcall target="DestroyStaleMetadata" />
 
 		<!-- Run all Tests -->
 		<antcall target="DeployAndRunAllTests" />
@@ -297,8 +336,30 @@
 		</java>
 	</target>
 	
-	<target name="buildPackageXmlAndDeployWithTests">
-		<antcall target="updatePackageXml" />
+	<target name="JustBuildAndCopyPackageXML">
+		<antcall target="UpdatePackageXml" />
+				
+		<copy file="../src/package.xml" todir="${env.CIRCLE_ARTIFACTS}"/>
+	</target>
+	
+	<target name="JustBuildToSFDCAndRunDelete">
+		<antcall target="DeployAndRunAllTests" />
+				
+		<if>
+			<equals arg1="${sf.runDeleteScript}" arg2="false" />
+			<then>
+				<echo>Delete Script Suppressed via sf.runDeleteScript</echo>
+			</then>
+			<else>
+				<echo>Running Delete Script, sf.runDeleteScript value:  ${sf.runDeleteScript}</echo>
+				<antcall target="DestroyStaleMetadata" />
+			</else>
+		</if> 
+	</target>
+	
+	<target name="BuildPackageXmlAndDeployWithTests">
+		
+		<antcall target="UpdatePackageXml" />
 		
 		<copy file="../src/package.xml" todir="${env.CIRCLE_ARTIFACTS}"/>
 			
@@ -311,20 +372,128 @@
 			</then>
 			<else>
 				<echo>Running Delete Script, sf.runDeleteScript value:  ${sf.runDeleteScript}</echo>
-				<antcall target="destroyStaleMetadata" />
+				<antcall target="DestroyStaleMetadata" />
+			</else>
+		</if> 
+		
+		<!--
+		<if>
+			<equals arg1="${selenium.runTestSuite}" arg2="true" />
+			<then>
+				<echo>Running Selenium Tests:  ${bin} and ${lib}</echo>
+				
+				<antcall target="testng-execution" />
+				
+			</then>
+			<else>
+				<echo>Skipping Selenium Tests</echo>
 			</else>
 		</if>
+		-->
+		
+		<!-- moved to buildSelenium 1 and 2
+		<if>
+			<equals arg1="${selenium.runTestSuite}" arg2="true" />
+			<then>
+				<echo>Injecting Sauce vs. Selenium Spring Config</echo>
+				<antcall target="InjectSeleniumSpringConfig" />
+				
+				<echo>Running Selenium Tests</echo>
+				
+				<antcall target="ExecuteSelenium" />
+				<antcall target="CopySeleniumTestResults" />
+			</then>
+		</if>
+		-->
+	</target>
+	
+	<target name="InjectSeleniumSpringConfig">
+		<echo>Injecting This:  ${selenium.webDriverClass}</echo>
+		
+		<replaceregexp file="${user.dir}/selenium/src/test/resources/spring.xml" match="__REPLACETARGET__" replace="${selenium.webDriverClass}" flags="g" />
+	</target>
+	
+	<condition property="isWindows">
+	    <os family="windows" />
+	</condition>
+
+	<condition property="isUnix">
+	    <os family="unix" />
+	</condition>
+
+	<target name="ExecuteSelenium" depends="mvn_windows, mvn_unix"/>
+
+	<target name="mvn_windows" if="isWindows">
+		<echo>Using Username:  ${selenium.salesforceUsername}</echo>
+	    <exec dir="${user.dir}/selenium" executable="cmd">
+	    	<env key="salesforceUsername" value="${selenium.salesforceUsername}" />
+	    	<env key="salesforcePassword" value="${selenium.salesforcePassword}" />
+	    	<env key="salesforceToken" value="${selenium.salesforceToken}" />
+	        <arg line="/c mvn package" />
+	    </exec>
 	</target>
 
-
-
+	<target name="mvn_unix" if="isUnix">
+		<echo>Using Username:  ${selenium.salesforceUsername}</echo>
+	    <exec dir="${user.dir}/selenium" executable="sh">
+	    	<env key="salesforceUsername" value="${selenium.salesforceUsername}" />
+	    	<env key="salesforcePassword" value="${selenium.salesforcePassword}" />
+	    	<env key="salesforceToken" value="${selenium.salesforceToken}" />
+	        <arg line="-c 'mvn package'" />
+	    </exec>
+	</target>
+	
+	<!--
+	<path id="maven-ant-tasks.classpath" path="${user.dir}/lib/maven-ant-tasks-2.1.3" />
+	  <typedef resource="org/apache/maven/artifact/ant/antlib.xml"
+	           uri="antlib:org.apache.maven.artifact.ant"
+	           classpathref="maven-ant-tasks.classpath" />
+	
+	<property name="seleniumBasedir" value="${user.dir}/selenium" />
+	<property name="lib" value="${user.dir}/lib" />
+	<property name="src" value="${seleniumBasedir}/src" />
+	<property name="bin" value="${seleniumBasedir}/target" />
+	<path id="selenium.classpath">
+		<pathelement location="${bin}" />
+		<fileset dir="${lib}">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+	
+	<taskdef name="testng" classname="org.testng.TestNGAntTask" classpathref="selenium.classpath" />
+	-->
+	<!--<target name="testng-execution" >-->
+	<!--
+	<target name="testng-execution" depends="compileSeleniumTests">
+		<testng outputdir="${env.CIRCLE_TEST_REPORTS}" classpathref="selenium.classpath" useDefaultListeners="false">
+			<xmlfileset dir="${seleniumBasedir}" includes="testng.xml" />
+		</testng>
+	</target>
+	-->
+	<!--
+	<target name="compileSeleniumTests" >
+		<artifact:mvn pom="${seleniumBasedir}/pom.xml" >
+		    <arg value="package"/>
+		</artifact:mvn>
+		
+		<echo> /* Compiled Directory Classes */ </echo>
+	</target>
+	-->
+	
+	
+	<target name="CopySeleniumTestResults">
+		<copydir src="${user.dir}${selenium.reportFolder}" dest="${env.CIRCLE_TEST_REPORTS}" />
+	</target>
+	
+	
+	
 	<!--
 		U T I L I T Y   T A R G E T S   &   M A C R O S
 		Borrowed from CumulusCI
 	-->
 	
-	<!-- updatePackageXml: Builds a new package.xml based upon the metadata in the src directory -->
-	<target name="updatePackageXml">
+	<!-- UpdatePackageXml: Builds a new package.xml based upon the metadata in the src directory -->
+	<target name="UpdatePackageXml">
     	<if>
     		<and>
     			<isset property="sf.package.installClass" />
@@ -358,7 +527,7 @@
 	<!--
 		Destroys all meta-data in the target org that is not in the git repo.
 	-->
-	<target name="destroyStaleMetadata">
+	<target name="DestroyStaleMetadata">
 		<echo>----------------------------------------------------------------------------</echo>
 		<delete dir="uninstallsrc" />
 		<delete dir="uninstall" />
