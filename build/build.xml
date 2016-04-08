@@ -7,7 +7,9 @@
 		<echo>Continuous Integration Build</echo>
 		<taskdef resource="net/sf/antcontrib/antlib.xml" />
 		<property environment="env" />
+		
 		<echo>Branch: ${env.CIRCLE_BRANCH}</echo>
+		
 		
 		<if>
 			<available file="build.${env.CIRCLE_BRANCH}.properties"/>
@@ -36,6 +38,9 @@
 		</if>
 		<echo>SF User: ${sf.username}</echo>
 		<echo>Build Cmd: ${build.cmd}</echo>
+		<echo>API Version:  ${sf.apiVersion}</echo>
+		<echo>Install Class:  ${sf.package.installClass}</echo>
+		<echo>Test Level:  ${sf.testLevel}</echo>
 		
 		<antcall target="${build.cmd}" />
 		
@@ -51,7 +56,12 @@
 	</target>
 	
 	<target name="SetupOnly" >
+		<taskdef resource="net/sf/antcontrib/antlib.xml" />
+		<property environment="env" />
+		
 		<echo>Cleaning Profiles, Deleting/Updating Flagged Metadata, and Building Package.xml Only</echo>
+		<echo>Branch:  ${env.CIRCLE_BRANCH}</echo>
+		
 		<if>
 			<available file="build.${env.CIRCLE_BRANCH}.properties"/>
 			<then>
@@ -79,6 +89,7 @@
 		</if>
 		
 		<echo>Metadata API Version: ${sf.apiVersion}</echo>
+		<echo>Install Class:  ${sf.package.installClass}</echo>
 		
 		<antcall target="CleanProfilesPermSets" />
 		<antcall target="DeleteMetaData" />
@@ -339,7 +350,7 @@
 	<target name="JustBuildAndCopyPackageXML">
 		<antcall target="UpdatePackageXml" />
 				
-		<copy file="../src/package.xml" todir="${env.CIRCLE_ARTIFACTS}"/>
+		<copy file="${user.dir}/src/package.xml" todir="${env.CIRCLE_ARTIFACTS}"/>
 	</target>
 	
 	<target name="JustBuildToSFDCAndRunDelete">
