@@ -376,6 +376,9 @@ project.setProperty("downgradePackage", result);
           	<case value="customPermissions">
               <property name="typename" value="CustomPermission" />
             </case>
+            <case value="flexipages">
+              <property name="typename" value="FlexiPage" />
+            </case>
             <default/>
           </switch>
 
